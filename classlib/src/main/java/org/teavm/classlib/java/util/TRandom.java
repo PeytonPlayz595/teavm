@@ -21,6 +21,12 @@ import org.teavm.classlib.java.lang.TObject;
 import org.teavm.classlib.java.util.random.TRandomGenerator;
 
 public class TRandom extends TObject implements TRandomGenerator, TSerializable {
+    private static final long multiplier = 0x5DEECE66DL;
+    private static final long addend = 0xBL;
+    private static final long mask = (1L << 48) - 1;
+
+    private long seed = 69;
+    
     /** A stored gaussian value for nextGaussian() */
     private double storedGaussian;
 
@@ -28,41 +34,70 @@ public class TRandom extends TObject implements TRandomGenerator, TSerializable 
     private boolean haveStoredGaussian;
 
     public TRandom() {
+        this((long)(Math.random() * 9007199254740991.0));
     }
 
-    public TRandom(@SuppressWarnings("unused") long seed) {
+    public TRandom(long seed) {
+        setSeed(seed);
     }
 
-    public void setSeed(@SuppressWarnings("unused") long seed) {
+    public void setSeed(long seed) {
+        this.seed = seed;
     }
+
+    private static long initialScramble(long seed) {
+		return (seed ^ multiplier) & mask;
+	}
+
+    protected int next(int bits) {
+		seed = (seed * multiplier + addend) & mask;
+		return (int) (seed >>> (48 - bits));
+	}
+
+    @Override
+    public void nextBytes(byte[] bytes) {
+		for (int i = 0, len = bytes.length; i < len;)
+			for (int rnd = nextInt(), n = Math.min(len - i, Integer.SIZE / Byte.SIZE); n-- > 0; rnd >>= Byte.SIZE)
+				bytes[i++] = (byte) rnd;
+	}
 
     @Override
     public int nextInt() {
-        return (int) (0x1.0p+32 * nextDouble() + Integer.MIN_VALUE);
-    }
+		return next(32);
+	}
 
     @Override
     public int nextInt(int n) {
-        if (n <= 0) {
-            throw new IllegalArgumentException();
-        }
-        return (int) (nextDouble() * n);
-    }
+		int r = next(31);
+		int m = n - 1;
+		if ((n & m) == 0) {
+			r = (int) ((n * (long) r) >> 31);
+        } else {
+			for (int u = r; u - (r = u % n) + m < 0; u = next(31))
+				;
+		}
+		return r;
+	}
 
     @Override
     public long nextLong() {
-        return ((long) nextInt() << 32) | nextInt();
-    }
+		return ((long) (next(32)) << 32) + next(32);
+	}
+    
+    @Override
+    public boolean nextBoolean() {
+		return next(1) != 0;
+	}
 
     @Override
     public float nextFloat() {
-        return (float) nextDouble();
-    }
+		return next(24) / ((float) (1 << 24));
+	}
 
     @Override
     public double nextDouble() {
-        return Math.random();
-    }
+		return (((long) (next(26)) << 27) + next(27)) * DOUBLE_UNIT;
+	}
 
     /**
      * Generate a random number with Gaussian distribution:
