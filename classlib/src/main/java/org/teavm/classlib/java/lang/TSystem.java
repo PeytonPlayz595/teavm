@@ -276,6 +276,10 @@ public final class TSystem extends TObject {
         // Do nothing
     }
 
+    public static void exit(int statusCode) {
+        // Do nothing
+    }
+
     private static void gcLowLevel() {
         GC.collectGarbageFull();
     }
