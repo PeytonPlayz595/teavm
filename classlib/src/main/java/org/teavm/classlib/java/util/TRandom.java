@@ -46,58 +46,58 @@ public class TRandom extends TObject implements TRandomGenerator, TSerializable 
     }
 
     private static long initialScramble(long seed) {
-		return (seed ^ multiplier) & mask;
-	}
+	return (seed ^ multiplier) & mask;
+    }
 
     protected int next(int bits) {
-		seed = (seed * multiplier + addend) & mask;
-		return (int) (seed >>> (48 - bits));
-	}
+	seed = (seed * multiplier + addend) & mask;
+	return (int) (seed >>> (48 - bits));
+    }
 
     @Override
     public void nextBytes(byte[] bytes) {
-		for (int i = 0, len = bytes.length; i < len;)
-			for (int rnd = nextInt(), n = Math.min(len - i, Integer.SIZE / Byte.SIZE); n-- > 0; rnd >>= Byte.SIZE)
-				bytes[i++] = (byte) rnd;
-	}
+	for (int i = 0, len = bytes.length; i < len;)
+		for (int rnd = nextInt(), n = Math.min(len - i, Integer.SIZE / Byte.SIZE); n-- > 0; rnd >>= Byte.SIZE)
+			bytes[i++] = (byte) rnd;
+    }
 
     @Override
     public int nextInt() {
-		return next(32);
-	}
+	return next(32);
+    }
 
     @Override
     public int nextInt(int n) {
-		int r = next(31);
-		int m = n - 1;
-		if ((n & m) == 0) {
-			r = (int) ((n * (long) r) >> 31);
+	int r = next(31);
+	int m = n - 1;
+	if ((n & m) == 0) {
+	    r = (int) ((n * (long) r) >> 31);
         } else {
-			for (int u = r; u - (r = u % n) + m < 0; u = next(31))
-				;
-		}
-		return r;
+            for (int u = r; u - (r = u % n) + m < 0; u = next(31))
+		    ;
 	}
+	return r;
+    }
 
     @Override
     public long nextLong() {
-		return ((long) (next(32)) << 32) + next(32);
-	}
+	return ((long) (next(32)) << 32) + next(32);
+    }
     
     @Override
     public boolean nextBoolean() {
-		return next(1) != 0;
-	}
+	return next(1) != 0;
+    }
 
     @Override
     public float nextFloat() {
-		return next(24) / ((float) (1 << 24));
-	}
+	return next(24) / ((float) (1 << 24));
+    }
 
     @Override
     public double nextDouble() {
-		return (((long) (next(26)) << 27) + next(27)) * DOUBLE_UNIT;
-	}
+	return (((long) (next(26)) << 27) + next(27)) * DOUBLE_UNIT;
+    }
 
     /**
      * Generate a random number with Gaussian distribution:
