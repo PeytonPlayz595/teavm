@@ -127,6 +127,10 @@ public class TThread extends TObject implements TRunnable {
         return daemon;
     }
 
+    public static void dumpStack() {
+        new Exception("Stack trace").printStackTrace();
+    }
+
     public final void setDaemon(boolean daemon) {
         this.daemon = daemon;
     }
